@@ -5,14 +5,26 @@ namespace App\Http\Livewire;
 use App\Models\Product;
 use Livewire\Component;
 use Illuminate\Support\Carbon;
+use Livewire\WithPagination;
 
 class Cart extends Component
 {
-    public $tax = '0%';
+    use WithPagination;
+
+    protected $paginationTheme = 'bootstrap';
     
+    public $tax = '0%';
+
+    public $search;
+    
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $products = Product::latest()->get();
+        $products = Product::where('name', 'like', '%'.$this->search.'%')->latest()->paginate(8);
         
         $condition = new \Darryldecode\Cart\CartCondition([
             'name' => 'pajak',
