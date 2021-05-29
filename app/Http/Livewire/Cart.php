@@ -24,7 +24,7 @@ class Cart extends Component
 
     public function render()
     {
-        $products = Product::where('name', 'like', '%'.$this->search.'%')->latest()->paginate(8);
+        $products = Product::where('name', 'like', '%'.$this->search.'%')->latest()->paginate(12);
         
         $condition = new \Darryldecode\Cart\CartCondition([
             'name' => 'pajak',
@@ -75,17 +75,23 @@ class Cart extends Component
 
     public function addItem($id)
     {
+        $product = Product::findOrFail($id);
+
         $rowId = 'Cart'.$id;
         $cart = \Cart::session(Auth()->id())->getContent();
         $cekItemId = $cart->whereIn('id', $rowId);
 
         if ($cekItemId->isNotEmpty()) {
-            \Cart::session(Auth()->id())->update($rowId, [
-                'quantity' => [
-                    'relative' => true,
-                    'value' => 1
-                ]
-            ]);
+            if ($product->qty == $cekItemId[$rowId]->quantity) {
+                session()->flash('error', 'Stok tidak cukup');
+            } else {
+                \Cart::session(Auth()->id())->update($rowId, [
+                    'quantity' => [
+                        'relative' => true,
+                        'value' => 1
+                    ]
+                ]);
+            }
         } else {
             $product = Product::findOrFail($id);
             \Cart::session(Auth()->id())->add([
